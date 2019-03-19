@@ -42,8 +42,11 @@ class ESN(nn.Module):
         self.w_out = torch.autograd.Variable(torch.randn((1 + reservoir_size + input_size, output_size)), requires_grad=True)
         
     def forward(self, x, hidden):
+        # W : reservoir = hidden
+        # new_hidden = (1 - alpha) * W(t) + alpha * tanh(W_in * x + W(t) * W(t-1)) 
         x_tild = nn.Tanh()(self.w_in @ x.t() + self.w_hidden @ hidden.t())
         new_hidden = (1 - self.alpha) * hidden + self.alpha * x_tild.t()
+        #doute sur concatenation de x avec les autres
         y = torch.cat((torch.ones((x.shape[0], 1)), x, new_hidden), dim=1) @ self.w_out 
         y = nn.Softmax()(y)
         return y, new_hidden
